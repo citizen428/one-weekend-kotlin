@@ -7,17 +7,17 @@ import javax.imageio.ImageIO
 const val imageWidth: Int = 256
 const val imageHeight: Int = 256
 
-fun main() {
-    fun clamp(x: Float) = (255.999 * x).toInt()
 
+fun main() {
     val image = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
     for (x in 0 until imageWidth) {
         for (y in 0 until imageHeight) {
-            val r = clamp(x / (imageWidth - 1).toFloat())
-            val g = clamp(y / (imageHeight - 1).toFloat())
-            val b = 0
-            val color = (r shl 16) or (g shl 8) or b
-            image.setRGB(x, y, color)
+            val pixelColor = Color(
+                x.toDouble() / (imageWidth - 1),
+                y.toDouble() / (imageHeight - 1),
+                0.0
+            )
+            image.setRGB(x, y, pixelColor.toInt())
         }
     }
 
