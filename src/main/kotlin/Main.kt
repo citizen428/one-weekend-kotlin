@@ -12,6 +12,13 @@ fun main() {
     val imageWidth = 800
     val imageHeight = (imageWidth / aspectRatio).toInt()
 
+    // World
+
+    val world = HittableList().apply {
+        add(Sphere(Point(0.0, 0.0, -1.0), 0.5))
+        add(Sphere(Point(0.0, -100.5, -1.0), 100.0))
+    }
+
     // Camera
 
     val focalLength = 1.0
@@ -34,25 +41,17 @@ fun main() {
 
     // Render
 
-    fun hitSphere(center: Point, radius: Double, r: Ray): Boolean {
-        val oc = center - r.origin
-        val a = r.direction.dot(r.direction)
-        val b = -2 * r.direction.dot(oc)
-        val c = oc.dot(oc) - radius * radius
-        val discriminant = b * b - 4.0 * a * c
-        return discriminant >= 0
-    }
-
     // Simple linear gradient, blending white and blue based on y
-    fun rayColor(r: Ray): Color {
-        if (hitSphere(Point(0.0, 0.0, -1.0), 0.5, r))
-            return Color(1.0, 0.0, 0.0)
-
-        val unitDirection = r.direction.unit()
-        val a = 0.5 * (unitDirection.y + 1)
-        return (1 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
+    fun rayColor(r: Ray, world: Hittable): Color {
+        val hitRecord = world.hit(r, Interval(0.0, Double.POSITIVE_INFINITY))
+        if (hitRecord != null) {
+            return 0.5 * (hitRecord.normal + Color(1.0, 1.0, 1.0))
+        } else {
+            val unitDirection = r.direction.unit()
+            val a = 0.5 * (unitDirection.y + 1)
+            return (1 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0)
+        }
     }
-
 
     val image = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
     for (x in 0 until imageWidth) {
@@ -60,11 +59,11 @@ fun main() {
             val pixelCenter = pixel00Loc + (x * pixelDeltaU) + (y * pixelDeltaV)
             val rayDirection = pixelCenter - cameraCenter
             val ray = Ray(cameraCenter, rayDirection)
-            val pixelColor = rayColor(ray)
+            val pixelColor = rayColor(ray, world)
 
             image.setRGB(x, y, pixelColor.toInt())
         }
     }
 
-    ImageIO.write(image, "PNG", File("images/chapter05.png"))
+    ImageIO.write(image, "PNG", File("images/chapter06b.png"))
 }
