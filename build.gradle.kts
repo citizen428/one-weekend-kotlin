@@ -19,5 +19,5 @@ tasks.test {
 }
 
 application {
-    mainClass.set("net.citizen428.MainKt")
+    mainClass.set("net.citizen428.RayTracer")
 }
