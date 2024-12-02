@@ -1,6 +1,7 @@
 package net.citizen428
 
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 class Vec3(val x: Double, val y: Double, val z: Double) {
     // GLSL-like component aliases
@@ -42,6 +43,29 @@ class Vec3(val x: Double, val y: Double, val z: Double) {
 
     companion object {
         val origin = Vec3(0.0, 0.0, 0.0)
+
+        fun random(min: Double, max: Double): Vec3 =
+            Vec3(
+                Random.nextDouble(min, max),
+                Random.nextDouble(min, max),
+                Random.nextDouble(min, max)
+            )
+
+        fun randomUnitVector(): Vec3 {
+            while (true) {
+                val p = random(-1.0, 1.0)
+                if (1e-160 < p.lengthSquared && p.lengthSquared <= 1)
+                    return p.unit()
+            }
+        }
+
+        fun randomOnHemisphere(normal: Vec3): Vec3 {
+            val onUnitSphere = randomUnitVector()
+            return if (onUnitSphere.dot(normal) > 0)
+                onUnitSphere
+            else
+                -onUnitSphere
+        }
     }
 }
 
@@ -50,9 +74,14 @@ operator fun Int.times(v: Vec3): Vec3 = v * this.toDouble()
 
 fun Color.toInt(): Int {
     val validInterval = Interval(0.0, 0.999)
-    fun clamp(x: Double) = (256 * validInterval.clamp(x)).toInt()
 
-    return (clamp(r) shl 16) or (clamp(g) shl 8) or clamp(b)
+    fun clamp(x: Double) = (256 * validInterval.clamp(x)).toInt()
+    fun linearToGamma(linear: Double): Double =
+        if (linear > 0) sqrt(linear) else 0.0
+
+    fun process(x: Double): Int = clamp(linearToGamma(x))
+
+    return (process(r) shl 16) or (process(g) shl 8) or process(b)
 }
 
 typealias Point = Vec3

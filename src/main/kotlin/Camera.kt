@@ -13,6 +13,7 @@ class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400, val sampl
     private val pixelDeltaU: Vec3         // Offset to pixel to the right
     private val pixelDeltaV: Vec3         // Offset to pixel below
     private val pixelSamplesScale: Double // Color scale factor for a sum of pixel samples
+    private val maxDepth = 50             // Maximum number of ray bounces into scene
 
     init {
         // Determine viewport dimensions.
@@ -71,10 +72,14 @@ class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400, val sampl
         0.0
     )
 
-    private fun rayColor(r: Ray, world: Hittable): Color {
-        val hitRecord = world.hit(r, Interval(0.0, Double.POSITIVE_INFINITY))
+    private fun rayColor(r: Ray, world: Hittable, depth: Int = maxDepth): Color {
+        if (depth <= 0)
+            return Color(0.0, 0.0, 0.0)
+
+        val hitRecord = world.hit(r, Interval(0.001, Double.POSITIVE_INFINITY))
         if (hitRecord != null) {
-            return 0.5 * (hitRecord.normal + Color(1.0, 1.0, 1.0))
+            val direction = hitRecord.normal + Vec3.randomUnitVector()
+            return 0.5 * rayColor(Ray(hitRecord.p, direction), world, depth - 1)
         } else {
             val unitDirection = r.direction.unit()
             val a = 0.5 * (unitDirection.y + 1)

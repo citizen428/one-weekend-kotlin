@@ -13,6 +13,6 @@ object RayTracer {
             imageWidth = 800,
             samplesPerPixel = 100
         )
-        cam.render(world, "images/chapter08.png")
+        cam.render(world, "images/chapter09d.png")
     }
 }
