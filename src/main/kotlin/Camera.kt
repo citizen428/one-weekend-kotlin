@@ -3,13 +3,16 @@ package net.citizen428
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.random.Random
 
-class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400) {
+class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400, val samplesPerPixel: Int = 10) {
     val imageHeight = (imageWidth / aspectRatio).toInt()
+
     private val center = Point.origin
-    private val pixel00Loc: Vec3   // Location of pixel 0, 0
-    private val pixelDeltaU: Vec3  // Offset to pixel to the right
-    private val pixelDeltaV: Vec3  // Offset to pixel below
+    private val pixel00Loc: Vec3          // Location of pixel 0, 0
+    private val pixelDeltaU: Vec3         // Offset to pixel to the right
+    private val pixelDeltaV: Vec3         // Offset to pixel below
+    private val pixelSamplesScale: Double // Color scale factor for a sum of pixel samples
 
     init {
         // Determine viewport dimensions.
@@ -29,23 +32,44 @@ class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400) {
         val viewPortUpperLeft = center - Vec3(0.0, 0.0, focalLength) -
                 viewportU / 2 - viewportV / 2
         pixel00Loc = viewPortUpperLeft + 0.5 * (pixelDeltaV + pixelDeltaV)
+
+        pixelSamplesScale = 1.0 / samplesPerPixel
     }
 
     fun render(world: Hittable, imagePath: String) {
         val image = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_RGB)
         for (x in 0 until imageWidth) {
             for (y in 0 until imageHeight) {
-                val pixelCenter = pixel00Loc + (x * pixelDeltaU) + (y * pixelDeltaV)
-                val rayDirection = pixelCenter - center
-                val ray = Ray(center, rayDirection)
-                val pixelColor = rayColor(ray, world)
+                var pixelColor = Color(0.0, 0.0, 0.0)
+                repeat(samplesPerPixel) {
+                    val r = getRay(x, y)
+                    pixelColor += rayColor(r, world)
+                }
 
-                image.setRGB(x, y, pixelColor.toInt())
+                val scaledPixelColor = pixelSamplesScale * pixelColor
+                image.setRGB(x, y, scaledPixelColor.toInt())
             }
         }
 
         ImageIO.write(image, "PNG", File(imagePath))
     }
+
+    fun getRay(x: Int, y: Int): Ray {
+        // Construct a camera ray originating from the origin and directed at
+        // randomly sampled point around the pixel location i, j.
+        val offset = sampleSquare()
+        val pixelSample = pixel00Loc + ((x + offset.x) * pixelDeltaU) + ((y + offset.y) * pixelDeltaV)
+        val rayOrigin = center
+        val rayDirection = pixelSample - rayOrigin
+        return Ray(rayOrigin, rayDirection)
+    }
+
+    // Returns the vector to a random point in the [-.5,-.5]-[+.5,+.5] unit square.
+    fun sampleSquare() = Vec3(
+        Random.nextDouble() - 0.5,
+        Random.nextDouble() - 0.5,
+        0.0
+    )
 
     private fun rayColor(r: Ray, world: Hittable): Color {
         val hitRecord = world.hit(r, Interval(0.0, Double.POSITIVE_INFINITY))

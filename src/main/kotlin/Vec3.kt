@@ -49,7 +49,8 @@ operator fun Double.times(v: Vec3): Vec3 = v * this
 operator fun Int.times(v: Vec3): Vec3 = v * this.toDouble()
 
 fun Color.toInt(): Int {
-    fun clamp(x: Double) = (255.999 * x).toInt()
+    val validInterval = Interval(0.0, 0.999)
+    fun clamp(x: Double) = (256 * validInterval.clamp(x)).toInt()
 
     return (clamp(r) shl 16) or (clamp(g) shl 8) or clamp(b)
 }

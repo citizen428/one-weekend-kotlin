@@ -7,6 +7,11 @@ class Interval(val min: Double, val max: Double = Double.NEGATIVE_INFINITY) {
 
     fun surrounds(x: Double): Boolean = min < x && x < max
 
+    fun clamp(x: Double): Double =
+        if (x < min) min
+        else if (x > max) max
+        else x
+
     companion object {
         val empty: Interval by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
             Interval(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY)
