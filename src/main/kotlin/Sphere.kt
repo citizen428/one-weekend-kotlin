@@ -2,7 +2,7 @@ package net.citizen428
 
 import kotlin.math.sqrt
 
-class Sphere(val center: Point, r: Double) : Hittable {
+class Sphere(val center: Point, r: Double, val mat: Material) : Hittable {
     val radius: Double
 
     init {
@@ -32,7 +32,13 @@ class Sphere(val center: Point, r: Double) : Hittable {
         }
 
         val p = r.at(root)
-        return HitRecord(p, root, (p - center) / radius, r)
+        return HitRecord(
+            p = p,
+            t = root,
+            outwardNormal = (p - center) / radius,
+            r = r,
+            material = mat
+        )
     }
 }
 

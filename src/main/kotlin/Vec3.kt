@@ -1,7 +1,10 @@
 package net.citizen428
 
+import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.random.Random
+
+const val EPSILON: Double = 1e-8
 
 class Vec3(val x: Double, val y: Double, val z: Double) {
     // GLSL-like component aliases
@@ -40,6 +43,16 @@ class Vec3(val x: Double, val y: Double, val z: Double) {
         )
 
     fun unit(): Vec3 = this / length
+
+    fun isNearZero(): Boolean {
+        fun withInDelta(d: Double) =
+            abs(d) < EPSILON
+
+        return withInDelta(r) && withInDelta(g) && withInDelta(b)
+    }
+
+    fun reflect(normal: Vec3): Vec3 =
+        this - 2 * this.dot(normal) * normal
 
     companion object {
         val origin = Vec3(0.0, 0.0, 0.0)

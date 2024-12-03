@@ -78,8 +78,10 @@ class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400, val sampl
 
         val hitRecord = world.hit(r, Interval(0.001, Double.POSITIVE_INFINITY))
         if (hitRecord != null) {
-            val direction = hitRecord.normal + Vec3.randomUnitVector()
-            return 0.5 * rayColor(Ray(hitRecord.p, direction), world, depth - 1)
+            return when (val sr = hitRecord.material.scatter(r, hitRecord)) {
+                null -> Color(0.0, 0.0, 0.0)
+                else -> sr.attenuation * rayColor(sr.ray, world, depth - 1)
+            }
         } else {
             val unitDirection = r.direction.unit()
             val a = 0.5 * (unitDirection.y + 1)
