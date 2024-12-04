@@ -3,35 +3,54 @@ package net.citizen428
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
+import kotlin.math.PI
+import kotlin.math.tan
 import kotlin.random.Random
 
-class Camera(val aspectRatio: Double = 1.0, val imageWidth: Int = 400, val samplesPerPixel: Int = 10) {
+class Camera(
+    val aspectRatio: Double = 1.0,
+    val imageWidth: Int = 400,
+    val samplesPerPixel: Int = 10,
+    vFieldOfView: Double = 90.0
+) {
     val imageHeight = (imageWidth / aspectRatio).toInt()
 
-    private val center = Point.origin
+    private val lookFrom = Point(-2.0, 2.0, 1.0)   // Point camera is looking from
+    private val lookAt = Point(0.0, 0.0, -1.0) // Point camera is looking at
+    private val viewUp = Point(0.0, 1.0, 0.0) // Camera-relative "up" direction
+    private val center = lookFrom
     private val pixel00Loc: Vec3          // Location of pixel 0, 0
     private val pixelDeltaU: Vec3         // Offset to pixel to the right
     private val pixelDeltaV: Vec3         // Offset to pixel below
     private val pixelSamplesScale: Double // Color scale factor for a sum of pixel samples
     private val maxDepth = 50             // Maximum number of ray bounces into scene
+    private val u: Vec3
+    private val v: Vec3
+    private val w: Vec3
 
     init {
         // Determine viewport dimensions.
-        val focalLength = 1.0
-        val viewportHeight = 2.0
+        val focalLength = (lookFrom - lookAt).length
+        val theta = vFieldOfView * PI / 180.0
+        val h = tan(theta / 2)
+        val viewportHeight = 2 * h * focalLength
         val viewportWidth = viewportHeight * (imageWidth.toDouble() / imageHeight)
 
+        // Calculate the u,v,w unit basis vectors for the camera coordinate frame.
+        w = (lookFrom - lookAt).unit()
+        u = viewUp.cross(w).unit()
+        v = w.cross(u)
+
         // Calculate the vectors across the horizontal and down the vertical viewport edges.
-        val viewportU = Vec3(viewportWidth, 0.0, 0.0)
-        val viewportV = Vec3(0.0, -viewportHeight, 0.0)
+        val viewportU = viewportWidth * u    // Vector across viewport horizontal edge
+        val viewportV = viewportHeight * -v  // Vector down viewport vertical edge
 
         // Calculate the horizontal and vertical delta vectors from pixel to pixel.
         pixelDeltaU = viewportU / imageWidth.toDouble()
         pixelDeltaV = viewportV / imageHeight.toDouble()
 
         // Calculate the location of the upper left pixel.
-        val viewPortUpperLeft = center - Vec3(0.0, 0.0, focalLength) -
-                viewportU / 2 - viewportV / 2
+        val viewPortUpperLeft = center - (focalLength * w) - viewportU / 2 - viewportV / 2
         pixel00Loc = viewPortUpperLeft + 0.5 * (pixelDeltaV + pixelDeltaV)
 
         pixelSamplesScale = 1.0 / samplesPerPixel
