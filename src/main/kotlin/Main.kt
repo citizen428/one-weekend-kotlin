@@ -23,9 +23,11 @@ object RayTracer {
                 imageWidth = 800,
                 lookFrom = Point(-2.0, 2.0, 1.0),
                 samplesPerPixel = 100,
-                vFieldOfView = 20.0
+                vFieldOfView = 20.0,
+                defocusAngle = 10.0,
+                focusDistance = 3.4
             )
         )
-        cam.render(world, "images/chapter12quaxi.png")
+        cam.render(world, "images/chapter13.png")
     }
 }

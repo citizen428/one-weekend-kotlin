@@ -80,6 +80,18 @@ class Vec3(val x: Double, val y: Double, val z: Double) {
             }
         }
 
+        fun randomInUnitDisk(): Vec3 {
+            while (true) {
+                val p = Vec3(
+                    Random.nextDouble(-1.0, 1.0),
+                    Random.nextDouble(-1.0, 1.0),
+                    0.0
+                )
+                if (p.lengthSquared <= 1)
+                    return p
+            }
+        }
+
         fun randomOnHemisphere(normal: Vec3): Vec3 {
             val onUnitSphere = randomUnitVector()
             return if (onUnitSphere.dot(normal) > 0)
