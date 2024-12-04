@@ -18,11 +18,14 @@ object RayTracer {
         }
 
         val cam = Camera(
-            aspectRatio = 16.0 / 9.0,
-            imageWidth = 800,
-            samplesPerPixel = 100,
-            vFieldOfView = 20.0
+            CameraOptions(
+                aspectRatio = 16.0 / 9.0,
+                imageWidth = 800,
+                lookFrom = Point(-2.0, 2.0, 1.0),
+                samplesPerPixel = 100,
+                vFieldOfView = 20.0
+            )
         )
-        cam.render(world, "images/chapter12c.png")
+        cam.render(world, "images/chapter12quaxi.png")
     }
 }
