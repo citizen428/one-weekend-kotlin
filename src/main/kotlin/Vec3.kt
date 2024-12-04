@@ -1,6 +1,7 @@
 package net.citizen428
 
 import kotlin.math.abs
+import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -53,6 +54,13 @@ class Vec3(val x: Double, val y: Double, val z: Double) {
 
     fun reflect(normal: Vec3): Vec3 =
         this - 2 * this.dot(normal) * normal
+
+    fun refract(normal: Vec3, etaIOverEtaT: Double): Vec3 {
+        val cosTheta = min(-this.dot(normal), 1.0)
+        val rOutPerp = etaIOverEtaT * (this + cosTheta * normal)
+        val rOutParallel = -sqrt(abs(1.0 - rOutPerp.lengthSquared)) * normal
+        return rOutPerp + rOutParallel
+    }
 
     companion object {
         val origin = Vec3(0.0, 0.0, 0.0)
